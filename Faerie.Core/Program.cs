@@ -1,11 +1,23 @@
-﻿using CmlLib.Core.Auth.Microsoft;
-using XboxAuthNet.Game.Msal;
+﻿using Faerie.Core.Logger;
+using Faerie.Core.Player;
+using Microsoft.Extensions.Logging;
+using static Faerie.Core.Logger.FaerieLogger;
 
-var app = await MsalClientHelper.BuildApplicationWithCache("yeeee");
-var loginHandler = JELoginHandlerBuilder.BuildDefault();
+internal class Program
+{
+    private static async Task Main(string[] args)
+    {
+        Auth auth = new (Auth.Method.DEVICECODE, "");
 
-var authenticator = loginHandler.CreateAuthenticatorWithNewAccount(default);
-authenticator.AddMsalOAuth(app, msal => msal.Interactive());
-authenticator.AddXboxAuthForJE(xbox => xbox.Basic());
-authenticator.AddJEAuthenticator();
-var session = await authenticator.ExecuteForLauncherAsync();
+        await auth.Signin();
+        Player? player = auth.GetPlayer();
+
+        if (player is null)
+        {
+            logger.Log(LogLevel.Error, "Couldn't authenticate");
+            return;
+        }
+
+        Console.WriteLine(player.GetAccessToken());
+    }
+}

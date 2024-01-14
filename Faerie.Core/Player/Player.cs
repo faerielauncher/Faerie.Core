@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CmlLib.Core.Auth;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,31 +7,31 @@ using System.Threading.Tasks;
 
 namespace Faerie.Core.Player
 {
-    internal class Player
+    internal class Player(MSession session)
     {
-        private string? accessToken { get; set; }
-        public Player(string accessToken)
+        private string? accessToken { get; set; } = session.AccessToken;
+        private string? username { get; set; } = session.Username;
+
+        private string? uuid = session.UUID;
+
+        public string? GetAccessToken() => accessToken;
+        public string? GetUsername() => username;
+        public string? GetUUID() => uuid;
+        public string GetSkinURL()
         {
-            this.accessToken = accessToken;
+            return $"https://crafatar.com/skins/uuid/{uuid}";
         }
 
-        public string getUUID()
+        public string GetSkinFaceURL()
         {
-            return String.Empty;
+            return $"https://crafatar.com/avatars/{uuid}";
         }
 
-        public string getSkinURL()
+        public string GetSkinFaceANSI()
         {
-            return String.Empty;
-        }
 
-        public string getSkinFaceURL()
-        {
-            return String.Empty;
-        }
 
-        public string getSkinFaceANSI()
-        {
+
             return String.Empty;
         }
     }
