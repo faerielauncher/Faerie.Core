@@ -8,5 +8,8 @@ namespace Faerie.Core.Game
 {
     internal interface IModloader
     {
+        string Endpoint();
+        string MinecraftVersion();
+        string LoaderVersion();
     }
 }

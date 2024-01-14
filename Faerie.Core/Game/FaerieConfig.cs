@@ -8,20 +8,15 @@ namespace Faerie.Core.Game
 {
     internal class FaerieConfig
     {
-        // get existing config
+        
         public FaerieConfig(string path)
         {
 
         }
-
-        // create new config
-        public FaerieConfig()
+        public bool Create()
         {
 
-        }
 
-        public bool Load()
-        {
             return false;
         }
     }

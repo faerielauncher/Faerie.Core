@@ -1,19 +1,26 @@
 ﻿using Faerie.Core.Data;
+using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
 namespace Faerie.Core.Http
 {
-    internal class HttpFactory
+    internal class FaerieHttpFactory
     {
-        private static readonly HttpClient HttpClient = new();
+        private static readonly HttpClient HttpClient = new(new HttpClientHandler()
+        {
+            AllowAutoRedirect = true
+        })
+        {
+            Timeout = TimeSpan.FromSeconds(120)
+        };
         private readonly string url;
         private HttpMethod method = HttpMethod.Get;
 
-        public HttpFactory(string url)
+        public FaerieHttpFactory(string url)
         {
             this.url = url;
         }
-        public HttpFactory SetMethod(HttpMethod method)
+        public FaerieHttpFactory SetMethod(HttpMethod method)
         {
             this.method = method;
             return this;
@@ -33,9 +40,11 @@ namespace Faerie.Core.Http
         }
         public async Task<(bool, string)> CreateRequestDownload(FaerieDirectory dir)
         {
+            logger.LogInformation($"Downloading: {url}");
+            string outputPath = Path.Combine(dir.GetPath(), RandomString(16));
+
             try
             {
-                string outputPath = Path.Combine(dir.GetPath(), RandomString(8));
                 HttpResponseMessage response = await HttpClient.GetAsync(url);
 
                 IEnumerable<string>? values;
@@ -48,13 +57,9 @@ namespace Faerie.Core.Http
                 }
 
                 using (Stream stream = await HttpClient.GetStreamAsync(url))
-                {
-                    
-
-                    using (FileStream output = new FileStream(dir.GetPath(), FileMode.Create))
-                    {
-                        await output.CopyToAsync(stream);
-                    }
+                using (FileStream output = new FileStream(outputPath, FileMode.Create)) {
+                    logger.LogInformation($"Writing file to: {outputPath}");
+                    await stream.CopyToAsync(output);
                 }
 
                 if (!File.Exists(outputPath))
@@ -64,8 +69,11 @@ namespace Faerie.Core.Http
 
                 return (true, outputPath);
             } 
-            catch (Exception)
+            catch (Exception ex)
             {
+                logger.LogError(ex.Message);
+                File.Delete(outputPath);
+
                 return (false, "");
             }
 
