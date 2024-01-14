@@ -6,16 +6,16 @@ using System.Threading.Tasks;
 
 namespace Faerie.Core.Game
 {
-    internal class Config
+    internal class FaerieConfig
     {
         // get existing config
-        public Config(string path)
+        public FaerieConfig(string path)
         {
 
         }
 
         // create new config
-        public Config()
+        public FaerieConfig()
         {
 
         }

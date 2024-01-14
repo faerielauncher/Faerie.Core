@@ -8,7 +8,7 @@ using XboxAuthNet.Game.Msal;
 namespace Faerie.Core.Player
 {
 
-    internal class Auth(Auth.Method method, string appId, XboxGameAccount? account = null)
+    internal class FaerieAuth(FaerieAuth.Method method, string appId, XboxGameAccount? account = null)
     {
         private Method AuthMethod { get; } = method;
         private string AppId { get; } = appId;
