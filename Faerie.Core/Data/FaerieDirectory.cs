@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Faerie.Core.Data
 {
-    internal class FaerieDirectory : IDisposable
+    public class FaerieDirectory : IDisposable
     {
         private readonly string path;
         private readonly string directoryName;

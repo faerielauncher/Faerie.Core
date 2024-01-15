@@ -6,10 +6,14 @@ using System.Threading.Tasks;
 
 namespace Faerie.Core.Game
 {
-    internal interface IModloader
+    internal class FaerieInstance
     {
-        string Endpoint();
-        string MinecraftVersion();
-        string LoaderVersion();
+        
+        public FaerieInstance()
+        {
+
+        }
+
+
     }
 }

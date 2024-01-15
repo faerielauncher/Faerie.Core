@@ -1,6 +1,7 @@
 ﻿using Faerie.Core.Data;
 using Faerie.Core.DataStore;
 using Faerie.Core.Http;
+using Faerie.Core.Templates;
 using Microsoft.Extensions.Logging;
 using System.IO;
 using System.IO.Compression;
@@ -24,11 +25,6 @@ namespace Faerie.Core.Java
             return this;
         }
 
-        private bool Empty(string version)
-        {
-            return new FaerieDirectory(Path.Combine(FaerieData.PATH, "runtime"), version).IsEmpty();
-        }
-
         private bool Exists(string version)
         {
             return new FaerieDirectory(Path.Combine(FaerieData.PATH, "runtime"), version).Exists();
@@ -38,25 +34,6 @@ namespace Faerie.Core.Java
         {
             // https://api.adoptium.net/v3/binary/latest/11/ga/windows/x64/jre/hotspot/normal/eclipse?project=jdk
             // https://api.adoptium.net/v3/binary/latest/<version>/ga/<os>/<architecture>/jre/hotspot/normal/eclipse?project=jdk
-
-            string platform = String.Empty;
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                platform = "windows";
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                platform = "linux";
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                platform = "mac";
-            }
-            else
-            {
-                throw new Exception("Unknown platform!");
-            }
 
             AvailableReleasesTemplate? releases = await new FaerieHttpFactory("https://api.adoptium.net/v3/info/available_releases")
                 .CreateRequestAsJson<AvailableReleasesTemplate>();
@@ -89,7 +66,7 @@ namespace Faerie.Core.Java
 
                         if (!jreDir.Exists())
                         {
-                            var result = await new FaerieHttpFactory($"https://api.adoptium.net/v3/binary/latest/{item}/{release}/{platform}/{System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString().ToLower()}/jre/hotspot/normal/eclipse?project=jdk")
+                            var result = await new FaerieHttpFactory($"https://api.adoptium.net/v3/binary/latest/{item}/{release}/{GetPlatform()}/{GetArchitecture()}/jre/hotspot/normal/eclipse?project=jdk")
                             .CreateRequestDownload(dir);
 
                             if (result.Item1)

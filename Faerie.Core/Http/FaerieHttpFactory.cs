@@ -38,24 +38,30 @@ namespace Faerie.Core.Http
 
             return JsonSerializer.Deserialize<T>(await response.Content.ReadAsStringAsync());
         }
-        public async Task<(bool, string)> CreateRequestDownload(FaerieDirectory dir)
+        public async Task<(bool, string)> CreateRequestDownload(FaerieDirectory dir, string? fileName = null)
         {
             logger.LogInformation($"Downloading: {url}");
+            
             string outputPath = Path.Combine(dir.GetPath(), RandomString(16));
+
+            Uri uri = new Uri(url);
+            if(uri.Segments.LastOrDefault() is not null)
+            {
+                // idk how to get rid of null here
+                string file = Path.Combine(dir.GetPath(), uri.Segments.LastOrDefault()!);
+                if (IsValidFilename(file))
+                {
+                    outputPath = file;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(fileName))
+            {
+                outputPath = Path.Combine(dir.GetPath(), fileName);
+            }
 
             try
             {
-                HttpResponseMessage response = await HttpClient.GetAsync(url);
-
-                IEnumerable<string>? values;
-                if (response.Headers.TryGetValues("Content-Disposition", out values))
-                {
-                    if(values is not null)
-                    {
-                        outputPath = Path.Combine(dir.GetPath(), values.First());
-                    }
-                }
-
                 using (Stream stream = await HttpClient.GetStreamAsync(url))
                 using (FileStream output = new FileStream(outputPath, FileMode.Create)) {
                     logger.LogInformation($"Writing file to: {outputPath}");

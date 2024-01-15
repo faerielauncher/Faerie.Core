@@ -9,26 +9,32 @@ namespace Faerie.Core.Game
     internal class FaerieGameFactory
     {
         private readonly FaerieConfig? config;
-        private IModloader modloader;
+        private ModLoader modloader;
 
         public FaerieGameFactory()
         {
 
         }
 
-        public FaerieGameFactory(FaerieConfig config)
+        public FaerieGameFactory(FaerieConfig config, ModLoader modloader)
         {
             this.config = config;
+            this.modloader = modloader;
         }
 
-        public FaerieGameFactory SetModloader(IModloader modloader)
+        public FaerieGameFactory SetModloader(ModLoader modloader)
         {
             this.modloader = modloader;
             return this;
         }
 
-        public void Play()
+        public async Task Play()
         {
+            await modloader.Download();
+            await modloader.ConfigureJava();
+
+            var args = modloader.Arguments();
+            Console.WriteLine(args.Build());
 
         }
     }

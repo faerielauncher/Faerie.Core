@@ -6,19 +6,13 @@ using System.Threading.Tasks;
 
 namespace Faerie.Core.Game
 {
-    internal class FaerieArgument
+    public class FaerieArgument
     {
-        private readonly string key;
-        private readonly string splitter = " ";
-        private readonly string value;
+        private string key;
+        private string splitter;
+        private string value;
 
-        public FaerieArgument(string key, string value)
-        {
-            this.key = key;
-            this.value = value;
-        }
-
-        public FaerieArgument(string key, string splitter, string value)
+        public FaerieArgument(string key = "", string splitter = " ", string value = "")
         {
             this.key = key;
             this.splitter = splitter;
@@ -45,6 +39,30 @@ namespace Faerie.Core.Game
         public string GetValue()
         {
             return value;
+        }
+        public FaerieArgument SetKey(string key)
+        {
+            if(key is not null)
+            {
+                this.key = key;
+            }
+            return this;
+        }
+        public FaerieArgument SetSplitter(string splitter)
+        {
+            if(splitter is not null)
+            {
+                this.splitter = splitter;
+            }
+            return this;
+        }
+        public FaerieArgument SetValue(string value)
+        {
+            if (value is not null)
+            {
+                this.value = value;
+            }
+            return this;
         }
     }
 }

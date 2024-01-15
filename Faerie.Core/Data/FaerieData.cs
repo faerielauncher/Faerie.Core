@@ -29,6 +29,9 @@ namespace Faerie.Core.DataStore
             {
                 new FaerieDirectory(PATH, "logs")
             },
+            {
+                new FaerieDirectory(PATH, "cache")
+            }
         };
         public FaerieData VerifyStructure()
         {

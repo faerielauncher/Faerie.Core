@@ -7,24 +7,32 @@ using System.Threading.Tasks;
 
 namespace Faerie.Core.Player
 {
-    internal class Player(MSession session)
+    internal class Player
     {
-        private string? accessToken { get; set; } = session.AccessToken;
-        private string? username { get; set; } = session.Username;
+        public static string? AccessToken { get; set; }
+        public static string? Username { get; set; }
+        public static string? Uuid { get; set; }
+        public static string? Xuid { get; set; }
 
-        private string? uuid = session.UUID;
+        public Player(MSession session)
+        {
+            AccessToken = session.AccessToken;
+            Username = session.Username;
+            Uuid = session.UUID;
+            Xuid = session.Xuid;
+        }
 
-        public string? GetAccessToken() => accessToken;
-        public string? GetUsername() => username;
-        public string? GetUUID() => uuid;
+        public string? GetAccessToken() => AccessToken;
+        public string? GetUsername() => Username;
+        public string? GetUUID() => Uuid;
         public string GetSkinURL()
         {
-            return $"https://crafatar.com/skins/uuid/{uuid}";
+            return $"https://crafatar.com/skins/uuid/{Uuid}";
         }
 
         public string GetSkinFaceURL()
         {
-            return $"https://crafatar.com/avatars/{uuid}";
+            return $"https://crafatar.com/avatars/{Uuid}";
         }
 
         public string GetSkinFaceANSI()

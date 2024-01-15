@@ -1,4 +1,6 @@
 ﻿using Faerie.Core.DataStore;
+using Faerie.Core.Game;
+using Faerie.Core.Game.Modloaders;
 using Faerie.Core.Java;
 using Faerie.Core.Player;
 using Microsoft.Extensions.Logging;
@@ -21,7 +23,14 @@ Player? player = auth.GetPlayer();
 
 if (player is null)
 {
-    logger.Log(LogLevel.Error, "Couldn't fetch player data!");
-    return;
+    throw new Exception("Couldn't fetch player data!");
 }
 
+Console.WriteLine(player.GetUsername());
+
+var modloader = new Vanilla();
+modloader.SetMinecraftVersion("1.20.4");
+
+await new FaerieGameFactory()
+    .SetModloader(modloader)
+    .Play();
