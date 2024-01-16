@@ -43,13 +43,13 @@ namespace Faerie.Core.Templates
     class DownloadsTemplate
     {
         [JsonPropertyName("client")]
-        public required FilePropertyTemplate Client { get; set; }
+        public FilePropertyTemplate? Client { get; set; }
         [JsonPropertyName("client_mappings")]
-        public required FilePropertyTemplate Client_mappings { get; set; }
+        public FilePropertyTemplate? Client_mappings { get; set; }
         [JsonPropertyName("server")]
-        public required FilePropertyTemplate Server { get; set; }
+        public FilePropertyTemplate? Server { get; set; }
         [JsonPropertyName("server_mappings")]
-        public required FilePropertyTemplate Server_mappings { get; set; }
+        public FilePropertyTemplate? Server_mappings { get; set; }
     }
     class JavaVersionTemplate
     {
@@ -108,7 +108,7 @@ namespace Faerie.Core.Templates
     internal class VersionTemplate
     {
         [JsonPropertyName("arguments")]
-        public required ArgumentsTemplate Arguments { get; set; }
+        public ArgumentsTemplate? Arguments { get; set; }
         [JsonPropertyName("assetIndex")]
         public required AssetIndexTemplate AssetIndex { get; set; }
         [JsonPropertyName("assets")]
@@ -125,6 +125,9 @@ namespace Faerie.Core.Templates
         public required Dictionary<string, LoggingClientTemplate> Client { get; set; }
         [JsonPropertyName("mainClass")]
         public required string MainClass { get; set; }
+        [JsonPropertyName("minecraftArguments")]
+        public string? MinecraftArguments { get; set; }
+
         [JsonPropertyName("minimumLauncherVersion")]
         public required int MinimumLauncherVersion { get; set; }
         [JsonPropertyName("releaseTime")]

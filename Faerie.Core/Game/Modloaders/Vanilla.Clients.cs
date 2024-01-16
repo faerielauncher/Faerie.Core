@@ -32,6 +32,11 @@ namespace Faerie.Core.Game.Modloaders
                 minecraftDir.CreateDirectory();
             }
 
+            if(version.Downloads.Client is null)
+            {
+                return false;
+            }
+
             var clientUrl = version.Downloads.Client.Url;
 
             if (clientUrl is null)

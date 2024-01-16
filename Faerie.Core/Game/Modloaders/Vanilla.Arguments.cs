@@ -40,6 +40,7 @@ namespace Faerie.Core.Game.Modloaders
             factory.GetKeyAndSetValue("-Dminecraft.launcher.brand", "Faerie");
             factory.GetKeyAndSetValue("-Dminecraft.launcher.version", "21");
             factory.GetKeyAndSetValue("-cp", string.Join(";", jarPath.Select(jar => jar).ToArray()));
+            factory.GetKeyAndSetValue("-Djava.library.path", CachePath.GetPath());
 
 
             return factory;

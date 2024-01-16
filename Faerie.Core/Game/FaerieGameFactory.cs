@@ -35,7 +35,6 @@ namespace Faerie.Core.Game
             await modloader.Download();
             await modloader.ConfigureJava();
 
-            
             var args = modloader.Arguments()
                 .SetMainClass("net.minecraft.client.main.Main")
                 .BuildNoEmpty();

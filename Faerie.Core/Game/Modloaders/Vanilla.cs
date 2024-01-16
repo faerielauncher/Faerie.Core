@@ -2,6 +2,7 @@
 using Faerie.Core.Templates;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using System.Xml.Linq;
 
 namespace Faerie.Core.Game.Modloaders
 {
@@ -27,6 +28,40 @@ namespace Faerie.Core.Game.Modloaders
             if (version is null)
             {
                 throw new Exception($"Couldn't find {MinecraftVersion}.json");
+            }
+
+            if(version.MinecraftArguments is not null)
+            {
+                version.MinecraftArguments = $"-Djava.library.path= -cp {version.MinecraftArguments}";
+                foreach (var item in version.MinecraftArguments.Split(" "))
+                {
+                    string value = item;
+                    var faerieArgument = new FaerieArgument();
+
+                    if (value.Contains("${"))
+                    {
+                        int index = value.IndexOf("$");
+                        value = value.Substring(0, index);
+                    }
+                    if (value.Contains("="))
+                    {
+                        int index = value.IndexOf("=");
+                        value = value.Substring(0, index);
+                        faerieArgument.SetSplitter("=");
+                    }
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        faerieArgument.SetKey(value);
+                        factory.AddArgument(faerieArgument);
+                    }
+                }
+
+                return BuildArguments(factory);
+            }
+
+            if(version.Arguments is null)
+            {
+                throw new Exception("Couldn't fetch arguments.");
             }
 
             List<object> merged = new List<object>();
@@ -219,14 +254,14 @@ namespace Faerie.Core.Game.Modloaders
                 logger.LogWarning("Libraries finished with errors.");
             }
 
-            //if (await DownloadAssets(version))
-            //{
-            //    logger.LogInformation("Assets finished!");
-            //}
-            //else
-            //{
-            //    logger.LogWarning("Assets finished with errors.");
-            //}
+            if (await DownloadAssets(version))
+            {
+                logger.LogInformation("Assets finished!");
+            }
+            else
+            {
+                logger.LogWarning("Assets finished with errors.");
+            }
 
             if (await DownloadClient(version))
             {
