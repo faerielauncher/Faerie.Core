@@ -17,7 +17,7 @@ namespace Faerie.Core.Game.Modloaders
             throw new NotImplementedException();
         }
 
-        public async override Task<bool> Download()
+        public override Task<bool> Download()
         {
             throw new NotImplementedException();
         }

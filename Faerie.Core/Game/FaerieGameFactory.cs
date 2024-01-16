@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 
 namespace Faerie.Core.Game
 {
@@ -33,8 +35,25 @@ namespace Faerie.Core.Game
             await modloader.Download();
             await modloader.ConfigureJava();
 
-            var args = modloader.Arguments();
-            Console.WriteLine(args.Build());
+            
+            var args = modloader.Arguments()
+                .SetMainClass("net.minecraft.client.main.Main")
+                .BuildNoEmpty();
+
+            var java = modloader.GetJavaExecutable();
+
+            using(StreamWriter sw = new StreamWriter(Path.Combine(Environment.CurrentDirectory, "args.txt")))
+            {
+                sw.Write(args);
+            }
+
+            if (java is not null)
+            {
+                Process.Start(java, args);
+            } else
+            {
+                logger.LogWarning("Couldn't find Java, exitting.");
+            }
 
         }
     }

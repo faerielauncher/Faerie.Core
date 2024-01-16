@@ -14,6 +14,7 @@ namespace Faerie.Core.Game
     {
         //private readonly List<FaerieArgument> availableArguments = new();
         private readonly List<FaerieArgument> arguments = new();
+        private string mainClass = "";
 
         public FaerieArgumentFactory AddArgument(FaerieArgument arg)
         {
@@ -28,6 +29,12 @@ namespace Faerie.Core.Game
             return this;
         }
 
+        public FaerieArgumentFactory SetMainClass(string mainClass)
+        {
+            this.mainClass = mainClass;
+            return this;
+        }
+
         public string GetArgumentList()
         {
             return string.Join(" ", arguments.Select(arg => arg.GetArgument()).ToArray());
@@ -35,10 +42,37 @@ namespace Faerie.Core.Game
 
         public string Build()
         {
+            if(mainClass is not null)
+            {
+                int index = arguments.FindIndex(arg => arg.GetKey() == "-cp");
+                arguments.Insert(index + 1, new FaerieArgument(this.mainClass));
+            }
+
             return string.Join(" ", arguments.Select(arg => arg.GetArgument()).ToArray());
         }
 
-        public void RemoteKey(string key)
+        public string BuildNoEmpty()
+        {
+            List<FaerieArgument>? temp = new List<FaerieArgument>();
+            foreach (var item in arguments)
+            {
+                if (!string.IsNullOrEmpty(item.GetValue()))
+                {
+                    temp.Add(item);
+                }
+            }
+
+            if (mainClass is not null)
+            {
+                int index = temp.FindIndex(arg => arg.GetKey() == "-cp");
+                arguments.Insert(index + 1, new FaerieArgument(this.mainClass));
+                temp.Insert(index + 1, new FaerieArgument(this.mainClass));
+            }
+
+            return string.Join(" ", temp.Select(arg => arg.GetArgument()).ToArray());
+        }
+
+        public void RemoveKey(string key)
         {
             arguments.Remove(arguments.First(x => x.GetKey() == key));
         }
@@ -50,9 +84,13 @@ namespace Faerie.Core.Game
                 if (!string.IsNullOrEmpty(value))
                 {
                     var arg = arguments
-                        .First(x => x.GetKey() == key);
+                        .FirstOrDefault(x => x.GetKey() == key);
+                    
+                    if(arg is not null)
+                    {
+                        arg.SetValue(value);
+                    }
 
-                    arg.SetValue(value);
                 }
             }
             catch (Exception)
@@ -68,11 +106,14 @@ namespace Faerie.Core.Game
                 if (!string.IsNullOrEmpty(splitter) && !string.IsNullOrEmpty(value))
                 {
                     var arg = arguments
-                        .First(x => x.GetKey() == key);
+                        .FirstOrDefault(x => x.GetKey() == key);
 
-                    arg
-                        .SetSplitter(splitter)
-                        .SetValue(value);
+                    if(arg is not null)
+                    {
+                        arg
+                            .SetSplitter(splitter)
+                            .SetValue(value);
+                    }
                 }
             }
             catch (Exception)

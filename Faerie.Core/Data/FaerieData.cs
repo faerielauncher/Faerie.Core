@@ -27,6 +27,9 @@ namespace Faerie.Core.DataStore
                 new FaerieDirectory(PATH, "assets")
             },
             {
+                new FaerieDirectory(PATH, "versions")
+            },
+            {
                 new FaerieDirectory(PATH, "logs")
             },
             {

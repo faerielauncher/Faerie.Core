@@ -64,6 +64,8 @@ namespace Faerie.Core.Templates
     {
         [JsonPropertyName("artifact")]
         public FilePropertyTemplate? Artifact { get; set; }
+        [JsonPropertyName("classifiers")]
+        public Dictionary<string, FilePropertyTemplate>? Classifiers { get; set; }
     }
 
     class RuleTemplate
@@ -90,7 +92,8 @@ namespace Faerie.Core.Templates
         [JsonPropertyName("name")]
         public string? Name { get; set; }
         [JsonPropertyName("rules")]
-        public List<RulesTemplate>? Rules { get; set; }
+        public List<RuleTemplate>? Rules { get; set; }
+
     }
 
     class LoggingClientTemplate

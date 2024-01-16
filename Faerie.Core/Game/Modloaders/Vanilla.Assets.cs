@@ -56,6 +56,12 @@ namespace Faerie.Core.Game.Modloaders
             {
                 var hash = asset.Value.Hash;
 
+                if (hash is null)
+                {
+                    logger.LogWarning($"Couldn't download {hash}");
+                    continue;
+                }
+
                 var dir = new FaerieDirectory(objectsDir.GetPath(), hash.Substring(0,2));
                 if (!dir.Exists())
                 {
@@ -85,6 +91,7 @@ namespace Faerie.Core.Game.Modloaders
                         }
                     }
                 }
+
 
                 if (hash is null)
                 {

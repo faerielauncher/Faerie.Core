@@ -44,6 +44,11 @@ namespace Faerie.Core.Game
             return Task.CompletedTask;
 
         }
+
+        public string? GetJavaExecutable()
+        {
+            return Path.Combine(JavaPath!, "java.exe");
+        }
         public abstract Task<bool> Download();
         public abstract FaerieArgumentFactory Arguments();
     }

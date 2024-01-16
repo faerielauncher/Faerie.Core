@@ -32,6 +32,8 @@ namespace Faerie.Core.Game.Modloaders
             List<object> merged = new List<object>();
 
             // ignore rules because they r optional in game
+            merged.AddRange(version.Arguments.Jvm);
+
             foreach (var item in version.Arguments.Game)
             {
                 var element = JsonSerializer.Deserialize<object>((JsonElement)item, serializeOptions);
@@ -41,7 +43,6 @@ namespace Faerie.Core.Game.Modloaders
                 }
             }
 
-            merged.AddRange(version.Arguments.Jvm);
 
             for (int i = 0; i < merged.Count; i++)
             {
@@ -51,7 +52,7 @@ namespace Faerie.Core.Game.Modloaders
                     var value = (string)element;
                     var faerieArgument = new FaerieArgument();
 
-                    if (value.Contains("$"))
+                    if (value.Contains("${"))
                     {
                         int index = value.IndexOf("$");
                         value = value.Substring(0, index);
@@ -120,7 +121,7 @@ namespace Faerie.Core.Game.Modloaders
                                 {
                                     var val = (string)values;
                                     var faerieArgument = new FaerieArgument();
-                                    if (val.Contains("$"))
+                                    if (val.Contains("${"))
                                     {
                                         int index = val.IndexOf("$");
                                         val = val.Substring(0, index);
@@ -147,14 +148,14 @@ namespace Faerie.Core.Game.Modloaders
                                         string _value = val;
                                         var faerieArgument = new FaerieArgument();
 
-                                        if (_value.Contains("$"))
+                                        if (_value.Contains("${"))
                                         {
                                             int index = _value.IndexOf("$");
                                             _value = _value.Substring(0, index);
                                         }
                                         if (_value.Contains("="))
                                         {
-                                            int index = _value.IndexOf("$");
+                                            int index = _value.IndexOf("=");
                                             _value = _value.Substring(0, index);
                                             faerieArgument.SetSplitter("=");
                                         }
@@ -212,18 +213,28 @@ namespace Faerie.Core.Game.Modloaders
             if (await DownloadLibraries(version))
             {
                 logger.LogInformation("Libraries finished!");
-            } else
+            } 
+            else
             {
-                logger.LogWarning("Libraries downloaded with errors.");
+                logger.LogWarning("Libraries finished with errors.");
             }
 
-            if (await DownloadAssets(version))
+            //if (await DownloadAssets(version))
+            //{
+            //    logger.LogInformation("Assets finished!");
+            //}
+            //else
+            //{
+            //    logger.LogWarning("Assets finished with errors.");
+            //}
+
+            if (await DownloadClient(version))
             {
-                logger.LogInformation("Assets finished!");
+                logger.LogInformation("Clients finished!");
             }
             else
             {
-                logger.LogWarning("Assets downloaded with errors.");
+                logger.LogWarning($"Clients finished with errors.");
             }
 
             return true;

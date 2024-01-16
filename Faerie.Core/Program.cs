@@ -29,7 +29,7 @@ if (player is null)
 Console.WriteLine(player.GetUsername());
 
 var modloader = new Vanilla();
-modloader.SetMinecraftVersion("1.20.4");
+modloader.SetMinecraftVersion("1.18.2");
 
 await new FaerieGameFactory()
     .SetModloader(modloader)
