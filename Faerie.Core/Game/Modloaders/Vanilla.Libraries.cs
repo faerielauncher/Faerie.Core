@@ -3,6 +3,7 @@ using Faerie.Core.DataStore;
 using Faerie.Core.Http;
 using Faerie.Core.Templates;
 using Microsoft.Extensions.Logging;
+using System.IO.Compression;
 
 namespace Faerie.Core.Game.Modloaders
 {
@@ -20,130 +21,146 @@ namespace Faerie.Core.Game.Modloaders
             // download libraries
             foreach (var item in version.Libraries)
             {
-                if (item.Downloads?.Artifact?.Url is null || item.Downloads?.Artifact?.Path is null)
-                {
-                    logger.LogWarning($"Skipping: {item.Name}");
-                    continue;
-                }
+                var artifact = item.Downloads?.Artifact;
 
-                List<string> allowedPlatforms = new List<string>();
-
-                if (item.Rules is not null)
+                if (artifact?.Sha1 is not null && artifact?.Url is not null && artifact?.Path is not null)
                 {
-                    foreach (var rule in item.Rules)
+
+                    List<string> allowedPlatforms = new List<string>();
+
+                    if (item.Rules is not null)
                     {
-                        var action = rule.Action;
-                        if (action is not null)
+                        foreach (var rule in item.Rules)
                         {
-                            if (action.Equals("allow"))
+                            var action = rule.Action;
+                            if (action is not null)
                             {
+                                if (action.Equals("allow"))
+                                {
 
-                                if (rule.Os is not null)
-                                {
-                                    allowedPlatforms.Add(rule.Os["name"]);
+                                    if (rule.Os is not null)
+                                    {
+                                        allowedPlatforms.Add(rule.Os["name"]);
+                                    }
+                                    else
+                                    {
+                                        allowedPlatforms.Add("windows");
+                                        allowedPlatforms.Add("linux");
+                                        allowedPlatforms.Add("macos");
+                                    }
                                 }
-                                else
+                                if (action.Equals("disallow"))
                                 {
-                                    allowedPlatforms.Add("windows");
-                                    allowedPlatforms.Add("linux");
-                                    allowedPlatforms.Add("macos");
+                                    if (rule.Os is not null)
+                                    {
+                                        allowedPlatforms.Remove(rule.Os["name"]);
+                                    }
+                                    else
+                                    {
+                                        allowedPlatforms.Remove("windows");
+                                        allowedPlatforms.Remove("linux");
+                                        allowedPlatforms.Remove("macos");
+                                    }
                                 }
                             }
-                            if (action.Equals("disallow"))
-                            {
-                                if (rule.Os is not null)
-                                {
-                                    allowedPlatforms.Remove(rule.Os["name"]);
-                                }
-                                else
-                                {
-                                    allowedPlatforms.Remove("windows");
-                                    allowedPlatforms.Remove("linux");
-                                    allowedPlatforms.Remove("macos");
-                                }
-                            }
+
                         }
-
+                        if (!allowedPlatforms.Contains(GetPlatform().Replace("mac", "osx")))
+                        {
+                            logger.LogWarning($"Skipping ({string.Join(",", allowedPlatforms.ToArray())}): {item.Name}");
+                            continue;
+                        }
                     }
-                    if (!allowedPlatforms.Contains(GetPlatform().Replace("mac", "osx")))
+
+                    var dir = new FaerieDirectory(Path.Combine(FaerieData.PATH, "libraries"), Path.Combine(artifact.Path, "../"));
+                    if (!dir.Exists())
                     {
-                        logger.LogWarning($"Skipping ({string.Join(",", allowedPlatforms.ToArray())}): {item.Name}");
+                        dir.CreateDirectory();
+                    }
+
+                    string? fileName = new Uri(artifact.Url).Segments.LastOrDefault();
+                    string filePath = Path.Combine(Path.Combine(FaerieData.PATH, "libraries", artifact.Path));
+                    bool skip = false;
+
+                    if (fileName is null)
+                    {
+                        logger.LogWarning($"Couldn't fetch the file name, skipping {item.Name}");
                         continue;
                     }
-                }
 
-                var dir = new FaerieDirectory(Path.Combine(FaerieData.PATH, "libraries"), Path.Combine(item.Downloads.Artifact.Path, "../"));
-                if (!dir.Exists())
-                {
-                    dir.CreateDirectory();
-                }
+                    jarPath.Add(filePath);
 
-                string? fileName = new Uri(item.Downloads.Artifact.Url).Segments.LastOrDefault();
-                string filePath = Path.Combine(Path.Combine(FaerieData.PATH, "libraries", item.Downloads.Artifact.Path));
-                bool skip = false;
-
-                if (fileName is null)
-                {
-                    logger.LogWarning($"Couldn't fetch the file name, skipping {item.Name}");
-                    continue;
-                }
-
-                jarPath.Add(filePath);
-
-                if (File.Exists(filePath))
-                {
-                    using (FileStream stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                    if (File.Exists(filePath))
                     {
-
-                        string? checksum = GetChecksumSHA1(stream);
-
-                        if (checksum is not null && item.Downloads.Artifact.Sha1 is not null)
+                        using (FileStream stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
                         {
-                            if (checksum.ToLower().Equals(item.Downloads.Artifact.Sha1.ToLower()))
+
+                            string? checksum = GetChecksumSHA1(stream);
+
+                            if (checksum is not null && artifact.Sha1 is not null)
                             {
-                                logger.LogInformation($"{fileName} exists! Skipping download.");
-                                skip = true;
-                            }
-                            else
-                            {
-                                logger.LogInformation("Checksum mismatched, downloading.");
+                                if (checksum.ToLower().Equals(artifact.Sha1.ToLower()))
+                                {
+                                    logger.LogInformation($"{fileName} exists! Skipping download.");
+                                    skip = true;
+                                }
+                                else
+                                {
+                                    logger.LogInformation("Checksum mismatched, downloading.");
+                                }
                             }
                         }
+
                     }
 
+                    if (!skip)
+                    {
+                        await new FaerieHttpFactory(artifact.Url)
+                            .CreateRequestDownload(dir, fileName);
+                    }
                 }
-
-                if (!skip)
-                {
-                    await new FaerieHttpFactory(item.Downloads.Artifact.Url)
-                        .CreateRequestDownload(dir, fileName);
-                }
-
 
                 // whoever thought this was a good idea lol
-                if (item.Downloads.Classifiers is not null)
+                var classifier = item?.Downloads?.Classifiers;
+                if (classifier is not null && MinecraftVersion is not null)
                 {
+                    var nativesFolder = new FaerieDirectory(Path.Combine(FaerieData.PATH, "natives"), MinecraftVersion);
+
+                    if (!nativesFolder.Exists())
+                    {
+                        nativesFolder.CreateDirectory();
+                    }
+
                     string natives = $"natives-{GetPlatform().Replace("mac", "osx")}";
                     logger.LogInformation("Found natives in api, trying to download them.");
-                    if (item.Downloads.Classifiers.ContainsKey(natives))
+                    if (classifier.ContainsKey(natives))
                     {
-                        var native = item.Downloads.Classifiers[natives];
+                        var native = classifier[natives];
                         if(native.Url is null || native.Path is null)
                         {
-                            logger.LogWarning($"Couldn't fetch the file name, skipping {item.Name} as in natives.");
+                            logger.LogWarning($"Couldn't fetch the file name, skipping {item?.Name} as in natives.");
                             continue;
                         }
 
-                        fileName = new Uri(native.Url).Segments.LastOrDefault();
-                        filePath = Path.Combine(Path.Combine(FaerieData.PATH, "libraries", native.Path));
+                        var dir = new FaerieDirectory(Path.Combine(FaerieData.PATH, "libraries"), Path.Combine(native.Path, "../"));
+                        if (!dir.Exists())
+                        {
+                            dir.CreateDirectory();
+                        }
+
+                        var fileName = new Uri(native.Url).Segments.LastOrDefault();
+                        var filePath = Path.Combine(Path.Combine(FaerieData.PATH, "libraries", native.Path));
+
+                        Console.WriteLine(filePath);
 
                         if (fileName is null)
                         {
-                            logger.LogWarning($"Couldn't fetch the file name, skipping {item.Name} as in natives.");
+                            logger.LogWarning($"Couldn't fetch the file name, skipping {item?.Name} as in natives.");
                             continue;
                         }
 
                         jarPath.Add(filePath);
+                        bool skip = false;
 
                         if (File.Exists(filePath))
                         {
@@ -157,7 +174,7 @@ namespace Faerie.Core.Game.Modloaders
                                     if (checksum.ToLower().Equals(native.Sha1.ToLower()))
                                     {
                                         logger.LogInformation($"{fileName} exists! Skipping download.");
-                                        continue;
+                                        skip = true;
                                     }
                                     else
                                     {
@@ -167,8 +184,31 @@ namespace Faerie.Core.Game.Modloaders
                             }
                         }
 
-                        await new FaerieHttpFactory(native.Url)
-                            .CreateRequestDownload(dir, fileName);
+                        if (!skip)
+                        {
+                            await new FaerieHttpFactory(native.Url)
+                                .CreateRequestDownload(dir, fileName);
+
+                        }
+
+                        using (FileStream zipToOpen = new FileStream(filePath, FileMode.Open))
+                        {
+                            using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Update))
+                            {
+                                foreach (var entry in archive.Entries)
+                                {
+                                    if (entry.FullName.EndsWith("/"))
+                                    {
+                                        Directory.CreateDirectory(Path.Combine(nativesFolder.GetPath(), entry.FullName));
+                                    }
+                                    else
+                                    {
+                                        entry.ExtractToFile(Path.Join(nativesFolder.GetPath(), entry.FullName), true);
+                                    }
+                                }
+                            }
+                        }
+
                     }
                 }
 

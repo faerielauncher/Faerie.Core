@@ -1,6 +1,7 @@
 ﻿using Faerie.Core.Data;
 using Faerie.Core.DataStore;
 using Faerie.Core.Templates;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,11 +18,18 @@ namespace Faerie.Core.Game.Modloaders
             var assetsDir = new FaerieDirectory(FaerieData.PATH, "assets");
             var instance = new FaerieDirectory(FaerieData.PATH, "instances");
 
-
             if (version is null)
             {
                 throw new Exception($"Couldn't find {MinecraftVersion}.json");
             }
+
+            if(MinecraftVersion is null)
+            {
+                logger.LogWarning($"Couldn't fetch set arguments, unknown: {MinecraftVersion}");
+                return factory;
+            }
+
+            var nativesDir = new FaerieDirectory(Path.Combine(FaerieData.PATH, "natives"), MinecraftVersion);
 
             factory.GetKeyAndSetValue("--username", Username);
             factory.GetKeyAndSetValue("--version", MinecraftVersion);
@@ -32,6 +40,7 @@ namespace Faerie.Core.Game.Modloaders
             factory.GetKeyAndSetValue("--accessToken", AccessToken);
             factory.GetKeyAndSetValue("--xuid", Xuid);
             factory.GetKeyAndSetValue("--userType", "msa");
+            factory.GetKeyAndSetValue("--userProperties", "{}");
             factory.GetKeyAndSetValue("--versionType", "release");
             factory.GetKeyAndSetValue("-Djava.library.path", CachePath.GetPath());
             factory.GetKeyAndSetValue("-Djna.tmpdir", CachePath.GetPath());
@@ -40,7 +49,7 @@ namespace Faerie.Core.Game.Modloaders
             factory.GetKeyAndSetValue("-Dminecraft.launcher.brand", "Faerie");
             factory.GetKeyAndSetValue("-Dminecraft.launcher.version", "21");
             factory.GetKeyAndSetValue("-cp", string.Join(";", jarPath.Select(jar => jar).ToArray()));
-            factory.GetKeyAndSetValue("-Djava.library.path", CachePath.GetPath());
+            factory.GetKeyAndSetValue("-Djava.library.path", nativesDir.GetPath());
 
 
             return factory;

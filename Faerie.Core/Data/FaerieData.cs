@@ -34,7 +34,11 @@ namespace Faerie.Core.DataStore
             },
             {
                 new FaerieDirectory(PATH, "cache")
+            },
+            {
+                new FaerieDirectory(PATH, "natives")
             }
+
         };
         public FaerieData VerifyStructure()
         {

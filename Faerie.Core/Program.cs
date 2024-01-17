@@ -1,9 +1,9 @@
-﻿using Faerie.Core.DataStore;
+﻿using Faerie.Core.Data;
+using Faerie.Core.DataStore;
 using Faerie.Core.Game;
 using Faerie.Core.Game.Modloaders;
 using Faerie.Core.Java;
 using Faerie.Core.Player;
-using Microsoft.Extensions.Logging;
 
 new FaerieData()
     .VerifyStructure();
@@ -14,6 +14,8 @@ await new FaerieJavaFactory()
     .AddRuntime(16)
     .AddRuntime(17)
     .Build();
+
+new FaerieDirectoryWatcher(new FaerieDirectory(FaerieData.PATH, "instances"));
 
 // temp code
 FaerieAuth auth = new(FaerieAuth.Method.DEVICECODE, "");
@@ -29,8 +31,9 @@ if (player is null)
 Console.WriteLine(player.GetUsername());
 
 var modloader = new Vanilla();
-modloader.SetMinecraftVersion("1.12.2");
+modloader.SetMinecraftVersion("1.20.4");
 
 await new FaerieGameFactory()
     .SetModloader(modloader)
     .Play();
+

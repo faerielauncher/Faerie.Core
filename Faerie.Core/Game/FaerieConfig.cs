@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SevenZip.CommandLineParser;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,16 +9,12 @@ namespace Faerie.Core.Game
 {
     internal class FaerieConfig
     {
-        
+
         public FaerieConfig(string path)
         {
 
         }
-        public bool Create()
-        {
 
 
-            return false;
-        }
     }
 }

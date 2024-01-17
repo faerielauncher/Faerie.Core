@@ -6,6 +6,10 @@ namespace Faerie.Core.Http
 {
     internal class FaerieHttpFactory
     {
+        /// <summary>
+        /// TODO: Multi-threadded downloads / concurrent
+        /// TODO: Retry after download fails
+        /// </summary>
         private static readonly HttpClient HttpClient = new(new HttpClientHandler()
         {
             AllowAutoRedirect = true
