@@ -1,13 +1,15 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.IO;
 
 namespace Faerie.Core.Data
 {
     internal class FaerieDirectoryWatcher
     {
-        public FaerieDirectoryWatcher(FaerieDirectory path)
-        {
-            var watcher = new FileSystemWatcher(path.GetPath());
+        private static FileSystemWatcher? watcher;
 
+        public static void Start(FaerieDirectory dir)
+        {
+            watcher = new FileSystemWatcher(dir.GetPath());
             watcher.NotifyFilter = NotifyFilters.Attributes
                                  | NotifyFilters.CreationTime
                                  | NotifyFilters.DirectoryName
@@ -26,32 +28,34 @@ namespace Faerie.Core.Data
             watcher.IncludeSubdirectories = true;
             watcher.EnableRaisingEvents = true;
 
-            logger.LogInformation($"Watching {path.GetPath()}");
+            logger.LogInformation($"Watching {dir.GetPath()}");
+
+            GC.KeepAlive(watcher);
         }
 
-        private void OnError(object sender, ErrorEventArgs e)
+        private static void OnError(object sender, ErrorEventArgs e)
         {
             PrintException(e.GetException());
         }
 
-        private void OnRenamed(object sender, RenamedEventArgs e)
+        private static void OnRenamed(object sender, RenamedEventArgs e)
         {
             Console.WriteLine($"Renamed:");
             Console.WriteLine($"    Old: {e.OldFullPath}");
             Console.WriteLine($"    New: {e.FullPath}");
         }
 
-        private void OnDeleted(object sender, FileSystemEventArgs e)
+        private static void OnDeleted(object sender, FileSystemEventArgs e)
         {
             Console.WriteLine($"Deleted: {e.FullPath}");
         }
 
-        private void OnCreated(object sender, FileSystemEventArgs e)
+        private static void OnCreated(object sender, FileSystemEventArgs e)
         {
             Console.WriteLine($"Created: {e.FullPath}");
         }
 
-        private void OnChanged(object sender, FileSystemEventArgs e)
+        private static void OnChanged(object sender, FileSystemEventArgs e)
         {
             if (e.ChangeType != WatcherChangeTypes.Changed)
             {
@@ -60,7 +64,7 @@ namespace Faerie.Core.Data
             Console.WriteLine($"Changed: {e.FullPath}");
         }
 
-        private void PrintException(Exception? ex)
+        private static void PrintException(Exception? ex)
         {
             if (ex != null)
             {

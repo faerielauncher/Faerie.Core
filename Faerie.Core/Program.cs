@@ -15,10 +15,10 @@ await new FaerieJavaFactory()
     .AddRuntime(17)
     .Build();
 
-new FaerieDirectoryWatcher(new FaerieDirectory(FaerieData.PATH, "instances"));
+FaerieDirectoryWatcher.Start(new FaerieDirectory(FaerieData.PATH, "instances"));
 
 // temp code
-FaerieAuth auth = new(FaerieAuth.Method.DEVICECODE, "");
+FaerieAuth auth = new(FaerieAuth.Method.DEVICECODE, "499c8d36-be2a-4231-9ebd-ef291b7bb64c");
 
 await auth.Signin();
 Player? player = auth.GetPlayer();

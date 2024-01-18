@@ -9,6 +9,7 @@ namespace Faerie.Core.Game.Modloaders
     /// <summary>
     /// https://meta.fabricmc.net/v2/versions/game
     /// https://meta.fabricmc.net/v2/versions/loader
+    /// https://meta.fabricmc.net/v2/versions/installer
     /// </summary>
     internal class Fabric : ModLoader
     {

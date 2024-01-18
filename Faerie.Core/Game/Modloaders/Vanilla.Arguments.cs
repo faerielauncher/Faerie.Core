@@ -2,11 +2,6 @@
 using Faerie.Core.DataStore;
 using Faerie.Core.Templates;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Faerie.Core.Game.Modloaders
 {
@@ -23,7 +18,7 @@ namespace Faerie.Core.Game.Modloaders
                 throw new Exception($"Couldn't find {MinecraftVersion}.json");
             }
 
-            if(MinecraftVersion is null)
+            if (MinecraftVersion is null)
             {
                 logger.LogWarning($"Couldn't fetch set arguments, unknown: {MinecraftVersion}");
                 return factory;
