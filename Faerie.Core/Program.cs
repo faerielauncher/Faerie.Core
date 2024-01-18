@@ -1,8 +1,10 @@
-﻿using Faerie.Core.Data;
+﻿using CmlLib.Core.Auth.Microsoft;
+using Faerie.Core.Data;
 using Faerie.Core.DataStore;
 using Faerie.Core.Game;
 using Faerie.Core.Game.Modloaders;
 using Faerie.Core.Java;
+using Faerie.Core.Logger;
 using Faerie.Core.Player;
 
 new FaerieData()
@@ -17,11 +19,21 @@ await new FaerieJavaFactory()
 
 FaerieDirectoryWatcher.Start(new FaerieDirectory(FaerieData.PATH, "instances"));
 
-// temp code
-FaerieAuth auth = new(FaerieAuth.Method.DEVICECODE, "499c8d36-be2a-4231-9ebd-ef291b7bb64c");
+JELoginHandler loginHandler = new JELoginHandlerBuilder()
+    .WithLogger(FaerieLogger.logger)
+    .Build();
 
-await auth.Signin();
-Player? player = auth.GetPlayer();
+if (loginHandler is null)
+{
+    throw new Exception("Couldn't initialize login handler");
+}
+
+// temp code
+FaerieAuth auth = new(loginHandler, "499c8d36-be2a-4231-9ebd-ef291b7bb64c");
+
+var msal = await auth.Prepare();
+await auth.Signin(msal.authenticator);
+var player = auth.GetPlayer();
 
 if (player is null)
 {

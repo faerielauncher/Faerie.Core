@@ -52,7 +52,7 @@ namespace Faerie.Core.Game.Modloaders
                 using (FileStream stream = new FileStream(clientPath, FileMode.Open, FileAccess.Read))
                 {
 
-                    string? checksum = GetChecksumSHA1(stream);
+                    string? checksum = GetChecksumSha1(stream);
 
                     if (checksum is not null && version.Downloads.Client.Sha1 is not null)
                     {

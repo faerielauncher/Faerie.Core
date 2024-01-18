@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Faerie.Core.Player
 {
-    internal class Player
+    public class Player
     {
         public static string? AccessToken { get; set; }
         public static string? Username { get; set; }

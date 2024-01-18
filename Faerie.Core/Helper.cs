@@ -1,55 +1,47 @@
 ﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Pipes;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Faerie.Core
 {
     internal class Helper
     {
-        private static Random random = new Random(Guid.NewGuid().GetHashCode());
+        private static readonly Random Random = new Random(Guid.NewGuid().GetHashCode());
         public static string RandomString(int length)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
             return new string(Enumerable.Repeat(chars, length)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
+                .Select(s => s[Random.Next(s.Length)]).ToArray());
         }
-        public static string? GetChecksumSHA1(Stream file)
+        public static string? GetChecksumSha1(Stream file)
         {
-            using (var algorithm = SHA1.Create())
+            using var algorithm = SHA1.Create();
+            try
             {
-                try
-                {
-                    StringBuilder sb = new();
+                StringBuilder sb = new();
 
-                    file.Position = 0;
-                    byte[] hashValue = algorithm.ComputeHash(file);
+                file.Position = 0;
+                byte[] hashValue = algorithm.ComputeHash(file);
 
-                    foreach (byte b in hashValue)
-                    {
-                        sb.AppendFormat("{0:X2}", b);
-                    }
+                foreach (byte b in hashValue)
+                {
+                    sb.AppendFormat("{0:X2}", b);
+                }
 
-                    return sb.ToString();
-                }
-                catch (IOException e)
-                {
-                    logger.LogWarning($"I/O Exception: {e.Message}");
-                }
-                catch (UnauthorizedAccessException e)
-                {
-                    logger.LogWarning($"Access Exception: {e.Message}");
-                }
+                return sb.ToString();
             }
+            catch (IOException e)
+            {
+                logger.LogWarning($"I/O Exception: {e.Message}");
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                logger.LogWarning($"Access Exception: {e.Message}");
+            }
+
             return null;
         }
         public static bool IsValidFilename(string? testName)

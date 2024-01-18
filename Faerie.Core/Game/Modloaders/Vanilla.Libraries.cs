@@ -95,7 +95,7 @@ namespace Faerie.Core.Game.Modloaders
                         using (FileStream stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
                         {
 
-                            string? checksum = GetChecksumSHA1(stream);
+                            string? checksum = GetChecksumSha1(stream);
 
                             if (checksum is not null && artifact.Sha1 is not null)
                             {
@@ -167,7 +167,7 @@ namespace Faerie.Core.Game.Modloaders
                             using (FileStream stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
                             {
 
-                                string? checksum = GetChecksumSHA1(stream);
+                                string? checksum = GetChecksumSha1(stream);
 
                                 if (checksum is not null && native.Sha1 is not null)
                                 {

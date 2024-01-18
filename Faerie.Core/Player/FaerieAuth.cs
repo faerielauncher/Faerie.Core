@@ -8,71 +8,47 @@ using XboxAuthNet.Game.Msal;
 namespace Faerie.Core.Player
 {
 
-    internal class FaerieAuth(FaerieAuth.Method method, string appId, XboxGameAccount? account = null)
+    public class FaerieAuth(JELoginHandler loginHandler, string appId, XboxGameAccount? account = null)
     {
-        private Method AuthMethod { get; } = method;
         private string AppId { get; } = appId;
         private XboxGameAccount? Account { get; } = account;
         private MSession? session;
         
-        private readonly JELoginHandler loginHandler = new JELoginHandlerBuilder()
-            .WithLogger(FaerieLogger.logger)
-            .Build();
-
-
-        public enum Method
+        public async Task<(NestedAuthenticator authenticator, string authCode, DateTimeOffset expiration)> Prepare()
         {
-            SILENT,
-            SILENT_MSAL,
-            INTERACTIVE,
-            DEVICECODE,
-            OFFLINE,
-        }
-
-        public async Task Signin()
-        {
-            NestedAuthenticator? authenticator;
             var app = await MsalClientHelper.BuildApplicationWithCache(AppId);
-
-            switch (AuthMethod)
+            string deviceCode = "";
+            DateTimeOffset expiration = default;
+            var authenticator = loginHandler.CreateAuthenticatorWithDefaultAccount(default);
+            authenticator.AddMsalOAuth(app, msal => msal.DeviceCode(code =>
             {
-                case Method.SILENT:
-                    if(Account is not null)
-                    {
-                        session = await loginHandler.AuthenticateInteractively(Account);
-                    }
-                    break;
-                case Method.SILENT_MSAL:
-                    authenticator = loginHandler.CreateAuthenticatorWithDefaultAccount();
-                    authenticator.AddMsalOAuth(app, msal => msal.Silent());
-                    authenticator.AddXboxAuthForJE(xbox => xbox.Basic());
-                    authenticator.AddJEAuthenticator();
-                    session = await authenticator.ExecuteForLauncherAsync();
-                    break;
+                Console.WriteLine(code.Message);
+                deviceCode = code.DeviceCode;
+                expiration = code.ExpiresOn;
+                return Task.CompletedTask;
+            }));
+            authenticator.AddXboxAuthForJE(xbox => xbox.Basic());
+            authenticator.AddJEAuthenticator();
+            return (authenticator, deviceCode, expiration);
+        }
 
-                case Method.INTERACTIVE:
-                    authenticator = loginHandler.CreateAuthenticatorWithDefaultAccount(default);
-                    authenticator.AddMsalOAuth(app, msal => msal.Interactive());
-                    authenticator.AddXboxAuthForJE(xbox => xbox.Basic());
-                    authenticator.AddForceJEAuthenticator();
-                    session = await authenticator.ExecuteForLauncherAsync();
-                    break;
+        public async Task<NestedAuthenticator> PrepareSilent()
+        {
+            var app = await MsalClientHelper.BuildApplicationWithCache(AppId);
+            NestedAuthenticator authenticator = loginHandler.CreateAuthenticatorWithDefaultAccount();
+            authenticator.AddMsalOAuth(app, msal => msal.Silent());
+            authenticator.AddXboxAuthForJE(xbox => xbox.Basic());
+            authenticator.AddJEAuthenticator();
+            return authenticator;
+        }
 
-                case Method.DEVICECODE:
-                    authenticator = loginHandler.CreateAuthenticatorWithDefaultAccount(default);
-                    authenticator.AddMsalOAuth(app, msal => msal.DeviceCode(code =>
-                    {
-                        Console.WriteLine(code.Message);
-                        return Task.CompletedTask;
-                    }));
-                    authenticator.AddXboxAuthForJE(xbox => xbox.Basic());
-                    authenticator.AddJEAuthenticator();
-                    session = await authenticator.ExecuteForLauncherAsync();
-                    break;
-
-            }
+        public async Task Signin(NestedAuthenticator authenticator)
+        {
+            session = await authenticator.ExecuteForLauncherAsync();
 
         }
+
+
 
         public async Task Signout()
         {

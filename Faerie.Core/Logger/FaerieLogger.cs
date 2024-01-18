@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Faerie.Core.Logger
 {
-    internal class FaerieLogger
+    public class FaerieLogger
     {
         public static ILogger logger = LoggerFactory.Create(config =>
         {
